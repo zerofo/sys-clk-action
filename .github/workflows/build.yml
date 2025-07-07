@@ -12,13 +12,13 @@ jobs:
     
       steps:
         - name: Extract owner and repo
-          uses: jungwinter/split@v1
+          uses: jungwinter/split@master
           id: repo
           with:
             seperator: /
             msg: ${{ github.repository }}
         - name: Checkout
-          uses: actions/checkout@v3
+          uses: actions/checkout@master
           with:
             ref: develop
             submodules: recursive
@@ -33,11 +33,11 @@ jobs:
                docker run -t --rm --name builder -v `pwd`:`pwd` -w `pwd` zerofo/ns_dev:0.9b2 bash build.sh
 
         - name: Upload file
-          uses: actions/upload-artifact@v3
+          uses: actions/upload-artifact@master
           with:
             name: ${{ steps.repo.outputs._1 }} 
             path: dist/
-        - uses: actions/download-artifact@v2
+        - uses: actions/download-artifact@master
           with:
             path: ${{ steps.repo.outputs._1 }}
         - run: |
@@ -45,7 +45,7 @@ jobs:
                cd ${{ steps.repo.outputs._1 }}
                zip -r ${{ steps.repo.outputs._1 }}.zip ${{ steps.repo.outputs._1 }}/ -x "*README.*"
         - name: Upload zip to release
-          uses: svenstaro/upload-release-action@v2
+          uses: svenstaro/upload-release-action@master
           with:
             repo_token: ${{ secrets.release_token }}
             file: ./${{ steps.repo.outputs._1 }}/*.zip
