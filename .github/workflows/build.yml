@@ -12,12 +12,12 @@ jobs:
       container: devkitpro/devkita64
 
       steps:
-        - name: Extract owner and repo
-          uses: winterjung/split@v2.1.1-rc1
-          id: repo
-          with:
-            seperator: /
-            msg: ${{ github.repository }}
+        # - name: Extract owner and repo
+        #   uses: winterjung/split@v2.1.1-rc1
+        #   id: repo
+        #   with:
+        #     seperator: /
+        #     msg: ${{ github.repository }}
         - name: Checkout
           uses: actions/checkout@master
           with:
@@ -39,7 +39,7 @@ jobs:
             path: dist/
         - uses: actions/download-artifact@master
           with:
-            path: ${{ steps.repo.outputs._1 }}
+            path: sys-clk-action
         - run: |
                find ${{ steps.repo.outputs._1 }}
                cd ${{ steps.repo.outputs._1 }}
@@ -48,7 +48,7 @@ jobs:
           uses: svenstaro/upload-release-action@master
           with:
             repo_token: ${{ secrets.release_token }}
-            file: ./${{ steps.repo.outputs._1 }}/*.zip
+            file: ./sys-clk-action/*.zip
             tag: ${{ github.ref }}
             file_glob: true
             overwrite: true
