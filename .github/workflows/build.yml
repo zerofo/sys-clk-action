@@ -9,10 +9,11 @@ on:
 jobs:
   build_NX:
       runs-on: ubuntu-latest
-    
+      container: devkitpro/devkita64
+
       steps:
         - name: Extract owner and repo
-          uses: jungwinter/split@master
+          uses: winterjung/split@v2.1.1-rc1
           id: repo
           with:
             seperator: /
@@ -28,9 +29,8 @@ jobs:
               SKIP_LOGIN: true
               
         - run: |
-               sed -i '1i git config --global --add safe.directory /home/runner/work/sys-clk-action/sys-clk-action' build.sh
-               cat build.sh
-               docker run -t --rm --name builder -v `pwd`:`pwd` -w `pwd` zerofo/ns_dev:0.9b2 bash build.sh
+              git config --global --add safe.directory `pwd` && \
+              git submodule update --remote && ./build.sh
 
         - name: Upload file
           uses: actions/upload-artifact@master
