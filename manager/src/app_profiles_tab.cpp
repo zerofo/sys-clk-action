@@ -35,12 +35,24 @@
 #include <zlib.h>
 
 static bool _nacpConvertTitleData(NacpStruct* nacp) {
-    if(nacp->titles_data_format == 0) {
+    static constexpr size_t titlesDataFormatOffset = 0x3215;
+    static constexpr size_t compressedDataSize = 0x2FFE;
+
+    uint8_t* rawNacp = reinterpret_cast<uint8_t*>(nacp);
+    uint8_t titlesDataFormat = rawNacp[titlesDataFormatOffset];
+    if(titlesDataFormat == 0) {
         return true;
     }
 
-    if(nacp->titles_data_format != 1) {
-        brls::Logger::error("unexpected title data format: %u", nacp->titles_data_format);
+    if(titlesDataFormat != 1) {
+        brls::Logger::error("unexpected title data format: %u", titlesDataFormat);
+        return false;
+    }
+
+    uint16_t compressedSize;
+    memcpy(&compressedSize, rawNacp, sizeof(compressedSize));
+    if(compressedSize > compressedDataSize) {
+        brls::Logger::error("compressed title data size is invalid: %u", compressedSize);
         return false;
     }
 
@@ -48,8 +60,8 @@ static bool _nacpConvertTitleData(NacpStruct* nacp) {
     z_stream stream = {};
     stream.avail_out = sizeof(tmp);
     stream.next_out = (Bytef*)tmp;
-    stream.avail_in = nacp->lang_data.compressed_data.buffer_size;
-    stream.next_in = nacp->lang_data.compressed_data.buffer;
+    stream.avail_in = compressedSize;
+    stream.next_in = rawNacp + sizeof(compressedSize);
 
     int ret = inflateInit2(&stream, -15);
     if(ret != Z_OK) {
@@ -65,8 +77,8 @@ static bool _nacpConvertTitleData(NacpStruct* nacp) {
         return false;
     }
 
-    nacp->titles_data_format = 0;
-    memcpy(nacp->lang_data.lang, tmp, sizeof(nacp->lang_data.lang));
+    rawNacp[titlesDataFormatOffset] = 0;
+    memcpy(rawNacp, tmp, sizeof(NacpLanguageEntry) * 16);
     return true;
 }
 #else
