@@ -31,24 +31,18 @@ jobs:
         - run: |
               git config --global --add safe.directory `pwd` && \
               git submodule update --remote && ./build.sh
-
+              cd dist 
+              zip -r ../${{ github.repository }}.zip ./* -x "*README.*"
         - name: Upload file
           uses: actions/upload-artifact@master
           with:
-            name: ${{ steps.repo.outputs._1 }} 
-            path: dist/
-        - uses: actions/download-artifact@master
-          with:
-            path: sys-clk-action
-        - run: |
-               find ${{ steps.repo.outputs._1 }}
-               cd ${{ steps.repo.outputs._1 }}
-               zip -r ${{ steps.repo.outputs._1 }}.zip ${{ steps.repo.outputs._1 }}/ -x "*README.*"
+            path: ${{ github.repository }}.zip
+  
         - name: Upload zip to release
           uses: svenstaro/upload-release-action@master
           with:
             repo_token: ${{ secrets.release_token }}
-            file: ./sys-clk-action/*.zip
+            file: ${{ github.repository }}.zip
             tag: ${{ github.ref }}
             file_glob: true
             overwrite: true
